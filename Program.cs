@@ -3,9 +3,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 
 using ProjetZORK.Services.Extensions;
-using ProjetZORK.DataAccessLayer.Extensions;
 
 using System.Threading.Tasks;
+using ProjetZORK.DataAccessLayer.Extensions;
 
 namespace ProjetZORK
 {
@@ -31,7 +31,7 @@ namespace ProjetZORK
         static IHostBuilder CreateHostBuilder(string[] args)
         {
             IConfiguration configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
