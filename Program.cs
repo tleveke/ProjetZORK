@@ -1,12 +1,45 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+
+using ProjetZORK.Services.Extensions;
+
+using System.Threading.Tasks;
+using ProjetZORK.DataAccessLayer.Extensions;
 
 namespace ProjetZORK
 {
     class Program
     {
-        static void Main(string[] args)
+        static Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            using IHost host = CreateHostBuilder(args).Build().SeedDatabase();
+
+            var run = host.RunAsync();
+            
+            var launcher = host.Services.GetService<Launcher>();
+
+            launcher.Exit += (o, e) => host.StopAsync();
+
+            launcher.Start();
+
+            return run;
+            // new Menu();
+            // Game game = new Game();
+            // _ = game;
+        }
+        static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
+
+            return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) => {
+                services.AddSingleton<Launcher>();
+                services.AddDataService();
+             });
         }
     }
 }
