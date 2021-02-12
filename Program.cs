@@ -37,8 +37,7 @@ namespace ProjetZORK
                 .Build();
 
             return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) => {
-                services.AddSingleton<Launcher>();
-                services.AddDataService();
+                services.AddSingleton<Launcher>().AddSingleton<Game>().AddDataService();
              });
         }
     }
