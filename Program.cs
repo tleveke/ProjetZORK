@@ -6,7 +6,8 @@ namespace ProjetZORK
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Game game = new Game();
+            _ = game;
         }
     }
 }
