@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Hosting;
+using ProjetZORK.Services;
 
 namespace ProjetZORK
 {
@@ -14,7 +15,12 @@ namespace ProjetZORK
         public Func<object, object, Task> Exit { get; internal set; }
 
         public event EventHandler<Task> Event;
+        public ZorkService zorkService;
 
+        public Launcher(ZorkService zorkService)
+        {
+            this.zorkService = zorkService;
+        }
         public void Start()
         {
             Console.Clear();
@@ -23,6 +29,8 @@ namespace ProjetZORK
             Console.Clear();
             Console.WriteLine("Menu");
             Console.WriteLine("______________________________________________");
+
+            new Game(zorkService);
         }
     }
 }
