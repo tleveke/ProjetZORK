@@ -36,38 +36,8 @@ namespace ProjetZORK.theGame
 
             var namePlayer = Console.ReadLine();
             Task.Run(async () => {
-
-
-
-                this.PlayerDto = new PlayerDto { Name = namePlayer, XP = 1, HP = 1, MaxHP = 1 };
-                this.gameId = await this.zorkService.PlayerServices.AddAsync(this.PlayerDto);
-
-                generateMap(width, height, 0, this.gameId);
-
-                int posXPlayer = rnd.Next(1, width);  // creates a number between 1 and width
-                int posYPlayer = rnd.Next(1, height);   // creates a number between 1 and height
-                Console.WriteLine(posXPlayer);
-                Console.WriteLine(posYPlayer);
-
-                CellDto cell = this.zorkService.CellServices.GetGameIdPosXY(this.gameId, posXPlayer, posYPlayer);
-                PlayerDto playerDto = this.zorkService.PlayerServices.Get(this.gameId);
-
-                await this.zorkService.PlayerServices.EditAsync(playerDto, cell);
-
+                new Game(zorkService,await this.zorkService.PlayerServices.GenerateMapAsync(width, height, 10, namePlayer));
             }).Wait();
-        }
-        public void generateMap(int width, int height, int numObstacle, int gameId)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    Task.Run(async () => { await this.zorkService.CellServices.AddAsync(new CellDto { PosX = x, PosY = y, gameId = gameId, Description = "dssdsd", canMoveTo = true, MonsterRate = 0 }); }).Wait();
-                }
-            }
-            Console.WriteLine("Fin de Génération de la map");
-
-            //new Game(this.zorkService, gameId);
         }
     }
 }

@@ -11,6 +11,8 @@ namespace ProjetZORK.theGame
     public class Game
     {
         private List<CellDto> map = new List<CellDto>();
+        private PlayerDto player = new PlayerDto();
+        private CellDto cellCurrent = new CellDto();
 
 
         private ZorkService zorkService;
@@ -20,14 +22,64 @@ namespace ProjetZORK.theGame
         {
             this.zorkService = zorkService;
             this.gameId = gameId;
+            getPlayer();
             getMap();
+            gameCell();
+        }
+        public void gameCell()
+        {
+            this.cellCurrent = this.player.currentCell;
 
+
+            Console.WriteLine("##############################################");
+            Console.WriteLine($"                  Vous êtes dans : {this.cellCurrent.PosX} {this.cellCurrent.PosY}, la description : {this.cellCurrent.Description}        ");
+            Console.WriteLine("##############################################");
+            Console.WriteLine($"                  deplacement :    ");
+            Console.Write($">");
+            deplacement();
+
+            movePlayer();
+
+        }
+        public void deplacement()
+        {
+            Console.Write($">");
+            var ch = Console.ReadLine();
+            switch (ch)
+            {
+                case "goNorth":
+                    this.cellCurrent.PosX++;
+                    return;
+                case "goSouth":
+                    this.cellCurrent.PosX--;
+                    break;
+                case "goEast":
+                    this.cellCurrent.PosY++;
+                    break;
+                case "goWest":
+                    this.cellCurrent.PosY--;
+                    break;
+                default:
+                    this.deplacement();
+                    break;
+            }
+
+        }
+        public async void movePlayer()
+        {
+            this.cellCurrent = this.zorkService.CellServices.GetGameIdPosXY(this.cellCurrent.gameId, this.cellCurrent.PosX, this.cellCurrent.PosY);
+            await this.zorkService.PlayerServices.EditAsync(this.player, this.cellCurrent);
+            gameCell();
+        }
+        public void getPlayer()
+        {
+            this.player = this.zorkService.PlayerServices.Get(this.gameId);
         }
 
         public void getMap()
         {
-            Console.WriteLine($" le game id => {gameId}");
-            this.map = this.zorkService.CellServices.GetAllGameId(gameId);
+            Console.WriteLine($" le game id => {this.player.Id}");
+            this.map = this.zorkService.CellServices.GetAllGameId(this.player.Id);
 
             foreach (CellDto cell in this.map)
             {
@@ -35,18 +87,6 @@ namespace ProjetZORK.theGame
             }
 
 
-        }
-
-        public void generateMap(int width, int height, int numObstacle, int gameId)
-        {
-            //Task.Run(async () => { await this.zorkService.CellServices.AddAsync(new CellDto { PosX = 1, PosY = 1, gameId = 1, Description = "dssdsd", canMoveTo = true, MonsterRate = 0 }); }).Wait();
-            //Task.Run(async () => { await this.zorkService.PlayerServices.AddAsync(new PlayerDto { Name = "nnn",XP=1,HP=1,MaxHP=1 }); }).Wait();
-            
-            
-            /*foreach (CellDto cell in this.zorkService.CellServices.GetAllGameId(1) )
-            {
-                Console.WriteLine(cell.Description);
-            }*/
         }
     }
 }
