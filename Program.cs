@@ -14,19 +14,11 @@ namespace ProjetZORK
         static Task Main(string[] args)
         {
             using IHost host = CreateHostBuilder(args).Build().SeedDatabase();
-
             var run = host.RunAsync();
-            
             var launcher = host.Services.GetService<Launcher>();
-
             launcher.Exit += (o, e) => host.StopAsync();
-
             launcher.Start();
-
             return run;
-            // new Menu();
-            // Game game = new Game();
-            // _ = game;
         }
         static IHostBuilder CreateHostBuilder(string[] args)
         {
