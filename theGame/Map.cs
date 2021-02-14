@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProjetZORK.NewFolder
+namespace ProjetZORK.theGame
 {
     public class Map
     {
