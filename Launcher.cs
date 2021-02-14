@@ -139,8 +139,6 @@ namespace ProjetZORK
                 index++;
             }
             Console.WriteLine("______________________________________________");
-
-            new Game(zorkService);
         }
 
         void ChangePage(int IndexPage, int IndexMenu)
@@ -154,6 +152,7 @@ namespace ProjetZORK
         void NewGame()
         {
             Console.WriteLine("New Game (start game)");
+            new Game(zorkService);
         }
 
         static void ExitGame()
