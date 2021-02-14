@@ -15,4 +15,9 @@
     <ProjectReference Include="..\ProjetZORK.Services\ProjetZORK.Services.csproj" />
   </ItemGroup>
 
+   <ItemGroup>
+      <Content Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+   </ItemGroup>
 </Project>
