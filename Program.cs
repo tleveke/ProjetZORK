@@ -6,8 +6,8 @@ using ProjetZORK.Services.Extensions;
 
 using System.Threading.Tasks;
 using ProjetZORK.DataAccessLayer.Extensions;
-using ProjetZORK.theGame;
 using Microsoft.Extensions.Logging;
+using ProjetZORK.theGame;
 
 namespace ProjetZORK
 {
@@ -30,15 +30,17 @@ namespace ProjetZORK
                 .AddCommandLine(args)
                 .Build();
 
-            return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) => {
-                services.AddScoped<Launcher>().AddScoped<Game>().AddScoped<SetupGame>().AddDataService()/*/.AddLogging(
+            return Host.CreateDefaultBuilder(args).ConfigureServices((_, services) =>
+            {
+                services.AddSingleton<Launcher>().AddSingleton<Game>().AddDataService();
+                    services.AddLogging(
                         builder =>
                         {
                             builder.AddFilter("Microsoft", LogLevel.Warning)
                                    .AddFilter("System", LogLevel.Warning)
                                    .AddFilter("NToastNotify", LogLevel.Warning)
                                    .AddConsole();
-                        })*/;
+                        });
             });
         }
     }

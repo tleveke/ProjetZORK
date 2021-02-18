@@ -66,7 +66,8 @@ namespace ProjetZORK.theGame
         }
         public async void movePlayer()
         {
-            this.player = await this.zorkService.PlayerServices.changeCasePlayer(this.cellCurrent.PosX, this.cellCurrent.PosY);
+            await this.zorkService.PlayerServices.changeCasePlayer(this.cellCurrent.PosX, this.cellCurrent.PosY);
+            /*this.player = */
             //this.cellCurrent = this.zorkService.CellServices.GetGameIdPosXY(this.cellCurrent.gameId, this.cellCurrent.PosX, this.cellCurrent.PosY);
             //await this.zorkService.PlayerServices.EditAsync(this.player, this.cellCurrent);
             gameCell();

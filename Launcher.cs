@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.Extensions.Hosting;
 using ProjetZORK.Services;
 using ProjetZORK.theGame;
+using ProjetZORK.Services.Dto;
 
 namespace ProjetZORK
 {
@@ -32,9 +32,7 @@ namespace ProjetZORK
                 "Exit",
             },
             /* Load Game */
-            new List<string>() {
-                "Return",
-            },
+            new List<string>(),
             /* About */
             new List<string>() {
                 "Return",
@@ -52,30 +50,32 @@ namespace ProjetZORK
             /* Home */
             new List<Action>() {
                 NewGame,
-                () => ChangePage(1, 0),
+                () => LoadGame(1, 0),
                 () => ChangePage(2, 0),
                 ExitGame,
             });
-            this.ItemsMenuAction.Add(
+            
             /* Load Game */
-            new List<Action>() {
-                () => ChangePage(0, 1),
-            });
-            this.ItemsMenuAction.Add(
+            this.ItemsMenuAction.Add(new List<Action>());
             /* About */
-            new List<Action>() {
+            this.ItemsMenuAction.Add(new List<Action>() {
                 () => ChangePage(0, 2),
             });
 
+            string name = "Zork ! ";
+            for (int i = 0; i < 4; i++)
+            {
+                name += name;
+                Console.Clear();
+                for (int j = 0; j < 20; j++)
+                {
+                    Thread.Sleep(10);
+                    Console.WriteLine(name);
+                }
+            }
             Console.Clear();
-            for (int i = 0; i < 20; i++) Console.WriteLine("Zork !");
-            Thread.Sleep(600);
-            Console.Clear();
-            for (int i = 0; i < 20; i++) Console.WriteLine("Zork ! Zork !");
-            Thread.Sleep(600);
-            Console.Clear();
-            for (int i = 0; i < 20; i++) Console.WriteLine("Zork ! Zork ! Zork !");
-            Thread.Sleep(600);
+            Console.WriteLine("Press Key !");
+            var ch = Console.ReadKey().Key;
             DiplayMenu();
             ActionMenu();
         }
@@ -125,18 +125,14 @@ namespace ProjetZORK
         void DiplayMenu () {
             Console.Clear();
             Console.WriteLine("##############################################");
-            Console.WriteLine("                  " + PageName[IndexPage]);
+            Console.WriteLine(" Zork - " + PageName[IndexPage]);
             Console.WriteLine("##############################################\n");
             Console.WriteLine("Use the arrow key (Up, Down) to select");
             Console.WriteLine("And press the Spacebar to validate - " + (this.IndexMenu+1));
             Console.WriteLine("______________________________________________\n");
             int index = 0;
             foreach (string e in this.ItemsMenuName[IndexPage]) {
-                if (index == IndexMenu) {
-                    Console.WriteLine($"[*] - {e}");
-                } else {
-                    Console.WriteLine($"[ ] - {e}");
-                }
+                Console.WriteLine($"[{(index == IndexMenu ? '*' : ' ')}] - {e}\n");
                 index++;
             }
             Console.WriteLine("______________________________________________");
@@ -150,16 +146,38 @@ namespace ProjetZORK
             ActionMenu();
         }
 
+        void LoadGame(int IndexPage, int IndexMenu)
+        {
+            ItemsMenuName[1].Clear();
+            ItemsMenuAction[1].Clear();
+            ItemsMenuName[1].Add("Return");
+            ItemsMenuAction[1].Add(() => ChangePage(0, 1));
+            List<PlayerDto> games = this.zorkService.PlayerServices.GetAll();
+            foreach (PlayerDto game in games)
+            {
+                ItemsMenuName[1].Add($"{game.Id}. {game.Name}");
+                ItemsMenuAction[1].Add(() => StartGame(game.Id));
+            }
+            ChangePage(IndexPage, IndexMenu);
+        }
+
         void NewGame()
         {
             Console.WriteLine("New Game (start game)");
             new SetupGame(zorkService);
         }
 
-        static void ExitGame()
+        void StartGame(int Id)
+        {
+            Console.WriteLine($"Start Game {Id}");
+            Console.WriteLine($"Start Game {Id}");
+            Console.WriteLine($"Start Game {Id}");
+        }
+
+        void ExitGame()
         {
             Console.WriteLine("Exit Game");
-            return;
+            this.Exit(this, Event);
         }
     }
 }
