@@ -37,7 +37,6 @@ namespace ProjetZORK.theGame
             Console.WriteLine($"                  deplacement :    ");
             Console.Write($">");
             deplacement();
-
             movePlayer();
 
         }
@@ -67,8 +66,9 @@ namespace ProjetZORK.theGame
         }
         public async void movePlayer()
         {
-            this.cellCurrent = this.zorkService.CellServices.GetGameIdPosXY(this.cellCurrent.gameId, this.cellCurrent.PosX, this.cellCurrent.PosY);
-            await this.zorkService.PlayerServices.EditAsync(this.player, this.cellCurrent);
+            this.player = await this.zorkService.PlayerServices.changeCasePlayer(this.cellCurrent.PosX, this.cellCurrent.PosY);
+            //this.cellCurrent = this.zorkService.CellServices.GetGameIdPosXY(this.cellCurrent.gameId, this.cellCurrent.PosX, this.cellCurrent.PosY);
+            //await this.zorkService.PlayerServices.EditAsync(this.player, this.cellCurrent);
             gameCell();
         }
         public void getPlayer()
