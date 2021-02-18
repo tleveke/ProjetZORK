@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.Hosting;
 using ProjetZORK.Services;
+using ProjetZORK.theGame;
 
 namespace ProjetZORK
 {
@@ -152,7 +153,7 @@ namespace ProjetZORK
         void NewGame()
         {
             Console.WriteLine("New Game (start game)");
-            new Game(zorkService);
+            new SetupGame(zorkService);
         }
 
         static void ExitGame()
