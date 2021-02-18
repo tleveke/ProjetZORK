@@ -28,7 +28,7 @@ namespace ProjetZORK.theGame
         }
         public void gameCell()
         {
-            this.cellCurrent = this.player.currentCell;
+            this.cellCurrent = this.player.Cell;
 
 
             Console.WriteLine("##############################################");
@@ -75,7 +75,7 @@ namespace ProjetZORK.theGame
         public void getPlayer()
         {
             this.player = this.zorkService.PlayerServices.Get(this.gameId);
-            Console.WriteLine(this.player.currentCell.Id);
+            Console.WriteLine(this.player.CellId);
         }
 
         public void getMap()
