@@ -75,6 +75,7 @@ namespace ProjetZORK.theGame
         public void getPlayer()
         {
             this.player = this.zorkService.PlayerServices.Get(this.gameId);
+            Console.WriteLine(this.player.currentCell.Id);
         }
 
         public void getMap()

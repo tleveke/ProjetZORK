@@ -136,6 +136,7 @@ namespace ProjetZORK
                 index++;
             }
             Console.WriteLine("______________________________________________");
+            Console.SetCursorPosition(0, IndexMenu);
         }
 
         void ChangePage(int IndexPage, int IndexMenu)
@@ -153,7 +154,7 @@ namespace ProjetZORK
             ItemsMenuName[1].Add("Return");
             ItemsMenuAction[1].Add(() => ChangePage(0, 1));
             List<PlayerDto> games = this.zorkService.PlayerServices.GetAll();
-            foreach (PlayerDto game in games)
+            foreach (PlayerDto game in Enumerable.Reverse(games))
             {
                 ItemsMenuName[1].Add($"{game.Id}. {game.Name}");
                 ItemsMenuAction[1].Add(() => StartGame(game.Id));
@@ -172,6 +173,7 @@ namespace ProjetZORK
             Console.WriteLine($"Start Game {Id}");
             Console.WriteLine($"Start Game {Id}");
             Console.WriteLine($"Start Game {Id}");
+            new Game(zorkService, Id);
         }
 
         void ExitGame()
