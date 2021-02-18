@@ -92,12 +92,15 @@ namespace ProjetZORK
                         Console.WriteLine(" Bye :) ");
                         return;
                     case ConsoleKey.UpArrow:
+                    case ConsoleKey.RightArrow:
                         MoveUp();
                         break;
                     case ConsoleKey.DownArrow:
+                    case ConsoleKey.LeftArrow:
                         MoveDown();
                         break;
                     case ConsoleKey.Spacebar:
+                    case ConsoleKey.Enter:
                         loopMenu = false;
                         break;
                 }

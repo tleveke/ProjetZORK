@@ -31,9 +31,6 @@ namespace ProjetZORK.theGame
             Console.WriteLine("##############################################");
             Console.WriteLine("##############################################");
             Console.Write("> ");
-
-            Random rnd = new Random();
-
             var namePlayer = Console.ReadLine();
             Task.Run(async () => {
                 new Game(zorkService,await this.zorkService.PlayerServices.GenerateMapAsync(width, height, 10, namePlayer));

@@ -9,8 +9,5 @@ namespace ProjetZORK
 {
     public class Monster : MonsterDto
     {
-        public Monster()
-        {
-        }
     }
 }
