@@ -44,6 +44,9 @@ namespace ProjetZORK
         public Launcher(ZorkService zorkService)
         {
             this.zorkService = zorkService;
+
+            this.zorkService.ObjectTypeServices.generateObject();
+
         }
 
         public void Start()
