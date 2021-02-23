@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ProjetZORK.theGame
@@ -13,6 +14,7 @@ namespace ProjetZORK.theGame
         private List<CellDto> map = new List<CellDto>();
         private PlayerDto player = new PlayerDto();
         private CellDto cellCurrent = new CellDto();
+        private MonsterDto monsterCurrent = new MonsterDto();
         List<Monster> ListMonster = new List<Monster>() {
             new Monster { Name = "Orc", HP = 2, AttackRate = 85 },
             new Monster { Name = "Murloc", HP = 4, AttackRate = 65 },
@@ -25,6 +27,7 @@ namespace ProjetZORK.theGame
 
         private ZorkService zorkService;
         private int gameId;
+        private bool exit = false;
 
         public Game(ZorkService zorkService, int gameId)
         {
@@ -32,47 +35,89 @@ namespace ProjetZORK.theGame
             this.gameId = gameId;
             getPlayer();
             getMap();
+
+            // If monster alive in game load the monster
+            this.monsterCurrent = this.zorkService.MonsterServices.Get(gameId);
+            if (this.monsterCurrent.HP > 0)
+            {
+                fight();
+            }
+
             gameCell();
         }
         public void gameCell()
         {
             this.cellCurrent = this.player.Cell;
+            this.genMiniMap();
             Console.WriteLine("##############################################");
-            Console.WriteLine($"                  Vous �tes dans : {this.cellCurrent.PosX} {this.cellCurrent.PosY}, la description : {this.cellCurrent.Description}        ");
+            Console.WriteLine($"Position : x {this.cellCurrent.PosX} | y {this.cellCurrent.PosY}");
+            Console.WriteLine($"Description : {this.cellCurrent.Description}");
             Console.WriteLine("##############################################");
-            Console.WriteLine("                  deplacement :    ");
+            Console.WriteLine("Deplacement :");
             deplacement();
-            movePlayer();
+            if(!this.exit) movePlayer();
         }
         public void deplacement()
         {
             Console.Write(">");
             var ch = Console.ReadKey().Key;
+            Console.Clear();
+            int x = this.cellCurrent.PosX;
+            int y = this.cellCurrent.PosY;
             switch (ch)
             {
                 case ConsoleKey.Escape:
-                    Console.WriteLine(" Bye :) ");
-                    return;
+                    this.exit = true;
+                    break;
                 case ConsoleKey.UpArrow:
-                    this.cellCurrent.PosX++;
+                    y--;
                     break;
                 case ConsoleKey.DownArrow:
-                    this.cellCurrent.PosX--;
+                    y++;
                     break;
                 case ConsoleKey.RightArrow:
-                    this.cellCurrent.PosY++;
+                    x++;
                     break;
                 case ConsoleKey.LeftArrow:
-                    this.cellCurrent.PosY--;
+                    x--;
                     break;
                 case ConsoleKey.Spacebar:
                     // INFO PLAYER
                     break;
                 default:
-                    this.deplacement();
+                    this.gameCell();
                     break;
             }
+            this.outOfMap(x, y);
         }
+
+        public void outOfMap(int x, int y)
+        {
+            if ((x < 0 || x > 4) || (y < 0 || y > 4))
+            {
+                Console.WriteLine("Zone inaccessible...");
+                this.gameCell();
+            }
+            else
+            {
+                this.cellCurrent.PosX = x;
+                this.cellCurrent.PosY = y;
+            }
+        }
+
+        public void genMiniMap()
+        {
+            for (int y = 0; y < 5; y++)
+            {
+                string miniMap = "|";
+                for (int x = 0; x < 5; x++)
+                {
+                    miniMap += $"{(this.cellCurrent.PosY == y && this.cellCurrent.PosX == x ? '*' : ' ')}|";
+                }
+                Console.WriteLine(miniMap);
+            }
+        }
+
         public async void movePlayer()
         {
             await this.zorkService.PlayerServices.changeCasePlayer(this.cellCurrent.PosX, this.cellCurrent.PosY);
@@ -80,35 +125,37 @@ namespace ProjetZORK.theGame
             if (this.cellCurrent.MonsterRate > rnd.Next(0, 100))
             {
                 int rankMonster = this.player.XP;
-                if (50 < rnd.Next(0, 100))
+                if (50 < rnd.Next(0, 100) && ListMonster.Count < 7)
                 {
                     rankMonster++;
                 }
                 Monster m = ListMonster[rankMonster];
-                Monster newMonster = new Monster { Name = m.Name, HP = m.HP, AttackRate = m.AttackRate };
-                fight(newMonster);
+                Monster newMonster = new Monster { Name = m.Name, HP = m.HP, AttackRate = m.AttackRate, Group = player.Id };
+                Task.Run(async () => {
+                    this.monsterCurrent = await this.zorkService.MonsterServices.AddAsync(newMonster);
+                }).Wait();
+                if (newMonster.Name == "Dragon") {
+                    this.annimayionBoss();
+                }
+                fight();
             }
-
-            /*this.player = */
-            //this.cellCurrent = this.zorkService.CellServices.GetGameIdPosXY(this.cellCurrent.gameId, this.cellCurrent.PosX, this.cellCurrent.PosY);
-            //await this.zorkService.PlayerServices.EditAsync(this.player, this.cellCurrent);
             gameCell();
         }
 
-        public void fight(Monster monster)
+        public void fight()
         {
             Console.WriteLine("##############################################");
             Console.WriteLine("                  Combat !                    ");
             Console.WriteLine("##############################################");
-            Console.WriteLine($"   {player.Name}   VS   {monster.Name}   ");
-            Console.WriteLine($"   HP: {player.HP}        HP: {monster.HP} ");
+            Console.WriteLine($"   {player.Name}   VS   {this.monsterCurrent.Name}");
+            Console.WriteLine($"   HP: {player.HP}        HP: {this.monsterCurrent.HP}");
             Console.WriteLine($"_____________________________________________\n");
             Console.WriteLine("   1. Attaque         |          2. Défense   ");
             Console.WriteLine("   3. Équipement      |          4. Fuite     ");
-            this.actionFight(monster);
+            this.actionFight();
         }
 
-        public void actionFight(Monster monster)
+        public void actionFight()
         {
             Console.Write(">");
             var ch = Console.ReadLine();
@@ -116,12 +163,12 @@ namespace ProjetZORK.theGame
             {
                 /* Attaque */
                 case "1":
-                    damagePlayer(monster);
-                    damageMonster(monster);
+                    damagePlayer();
+                    damageMonster();
                     break;
                 /* Défense */
                 case "2":
-                    damageMonster(monster, 10);
+                    damageMonster(10);
                     break;
                 /* Équipement */
                 case "3":
@@ -132,37 +179,58 @@ namespace ProjetZORK.theGame
                     Random rnd = new Random();
                     if (50 < rnd.Next(0, 100)) {
                         Console.WriteLine("Vous avez fuit");
+                        Task.Run(async () => {
+                            await this.zorkService.MonsterServices.DeleteAsync(this.monsterCurrent);
+                        }).Wait();
                         return;
                     } else {
                         Console.WriteLine("Vous n'avez pas réussi a fuire...");
-                        damageMonster(monster, 10);
+                        damageMonster(10);
                     }
                     break;
             }
-            if(monster.HP > 0 && this.player.HP > 0)
+            if(this.monsterCurrent.HP > 0 && this.player.HP > 0)
             {
-                actionFight(monster);
+                actionFight();
             }
         }
 
-        public void damagePlayer(Monster monster) {
+        public void damagePlayer() {
             /* Attaque du Joueur */
-            monster.HP = monster.HP - 1; /* + obgectDmg */
-            Console.WriteLine($"Vous attaquez ! {monster.Name} a {monster.HP} HP");
-            if (monster.HP <= 0)
+            this.monsterCurrent.HP = this.monsterCurrent.HP - this.player.Attack; /* + obgectDmg */
+            Task.Run(async () => {
+                await this.zorkService.MonsterServices.EditAsync(this.monsterCurrent);
+            }).Wait();
+            Console.WriteLine($"Vous attaquez ! {this.monsterCurrent.Name} a {this.monsterCurrent.HP} HP");
+            if (this.monsterCurrent.HP <= 0)
             {
-                Console.WriteLine($"{monster.Name} est mort...");
+                Console.WriteLine($"{this.monsterCurrent.Name} est mort...");
+                this.player.XP++;
+                Task.Run(async () => {
+                    await this.zorkService.PlayerServices.editUserLifeXP(this.player);
+                }).Wait();
+                Task.Run(async () => {
+                    await this.zorkService.MonsterServices.DeleteAsync(this.monsterCurrent);
+                }).Wait();
+                if (this.monsterCurrent.Name == "Dragon")
+                {
+                    Console.WriteLine("\n\n\n      (¯`·¯`·.¸¸.·´¯`·.¸¸.·´¯`·´¯)\n      ( \\                      / )\n       ( ) Vous avez gagner ! ( )\n        (/                    \\)\n         (.·´¯`·.¸¸.·´¯`·.¸¸.·)");
+                    this.exit = true;
+                }
             }
         }
         
-        public void damageMonster(Monster monster, int defence = 0) {
+        public void damageMonster(int defence = 0) {
             /* Attaque du Monstre */
-            if (monster.HP >= 0) return;
+            if (this.monsterCurrent.HP <= 0) return;
             Random rnd = new Random();
-            if ((monster.AttackRate - defence) < rnd.Next(0, 100))
+            if ((this.monsterCurrent.AttackRate - defence) > rnd.Next(0, 100))
             {
                 this.player.HP = this.player.HP - 1; /* +++ */
-                Console.WriteLine($"{monster.Name} attaque ! Il vous reste {this.player.HP} HP");
+                Task.Run(async () => {
+                    await this.zorkService.PlayerServices.editUserLifeXP(this.player);
+                }).Wait();
+                Console.WriteLine($"{this.monsterCurrent.Name} attaque ! Il vous reste {this.player.HP} HP");
                 if (this.player.HP <= 0)
                 {
                     Console.WriteLine(" - Game Over - ");
@@ -170,18 +238,18 @@ namespace ProjetZORK.theGame
             }
             else
             {
-                Console.WriteLine($"{monster.Name} a raté son attaque...");
+                Console.WriteLine($"{this.monsterCurrent.Name} a raté son attaque...");
                 if (defence > 0 && 50 < rnd.Next(0, 100))
                 {
-                    damagePlayer(monster);
+                    damagePlayer();
                 }
             }
+
         }
 
         public void getPlayer()
         {
             this.player = this.zorkService.PlayerServices.Get(this.gameId);
-            Console.WriteLine(this.player.CellId);
         }
 
         public void getMap()
@@ -192,6 +260,39 @@ namespace ProjetZORK.theGame
             foreach (CellDto cell in this.map)
             {
                 Console.WriteLine($"{cell.PosX} {cell.PosY} {cell.Description} {cell.gameId}");
+            }
+        }
+
+        public void annimayionBoss()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Console.WriteLine("                                              ,--,  ,.-..");
+                Console.WriteLine("                ,                   \\,       '-,-`,'-.' | ._");
+                Console.WriteLine("               /|           \\    ,   |\\         }  )/  / `-,',");
+                Console.WriteLine("               [ '          |\\  /|   | |        /  \\|  |/`  ,`");
+                Console.WriteLine("               | |       ,.`  `,` `, | |  _,...(   (      _',");
+                Console.WriteLine("   -ART BY-    \\  \\  __ ,-` `  ,  , `/ |,'      Y     (   \\_L\\");
+                Console.WriteLine("    -ZEUS-      \\  \\_\\,``,   ` , ,  /  |         )         _,/");
+                Console.WriteLine("                 \\  '  `  ,_ _`_,-,<._.<        /         /");
+                Console.WriteLine("                  ', `>.,`  `  `   ,., |_      |         /");
+                Console.WriteLine("                    \\/`  `,   `   ,`  | /__,.-`    _,   `\\");
+                Console.WriteLine("                -,-..\\  _  \\  `  /  ,  / `._) _,-\\`       \\");
+                Console.WriteLine("                 \\_,,.) /\\    ` /  / ) (-,, ``    ,        |");
+                Console.WriteLine("                ,` )  | \\_\\       '-`  |  `(               \\");
+                Console.WriteLine("               /  /```(   , --, ,' \\   |`<`    ,            |");
+                Console.WriteLine("              /  /_,--`\\   <\\  V /> ,` )<_/)  | \\      _____)");
+                Console.WriteLine("        ,-, ,`   `   (_,\\ \\    |   /) / __/  /   `----`");
+                Console.WriteLine("       (-, \\           ) \\ ('_.-._)/ /,`    /");
+                Console.WriteLine("       | /  `          `/ \\\\ V   V, /`     /");
+                Console.WriteLine("    ,--\\(        ,     <_/`\\\\     ||      /");
+                Console.WriteLine("   (   ,``-     \\/|         \\-A.A-`|     /");
+                Console.WriteLine("  ,>,_ )_,..(    )\\          -,,_-`  _--`");
+                Console.WriteLine(" (_ \\|`   _,/_  /  \\_            ,--`");
+                Console.WriteLine("  \\( `   <.,../`     `-.._   _,-`");
+                Console.WriteLine("   `                      ```");
+                Thread.Sleep(100);
+                Console.Clear();
             }
         }
     }

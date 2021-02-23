@@ -1,9 +1,6 @@
 ﻿using ProjetZORK.Services;
 using ProjetZORK.Services.Dto;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ProjetZORK.theGame
@@ -26,10 +23,8 @@ namespace ProjetZORK.theGame
         {
             Console.Clear();
             Console.WriteLine("##############################################");
-            Console.WriteLine("                  Choose Player Name        ");
-            Console.WriteLine("##############################################");
-            Console.WriteLine("##############################################");
-            Console.WriteLine("##############################################");
+            Console.WriteLine(" Choisissez votre nom (entre pour valider)");
+            Console.WriteLine("##############################################\n");
             Console.Write("> ");
             var namePlayer = Console.ReadLine();
             Task.Run(async () => {
