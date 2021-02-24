@@ -44,6 +44,10 @@ namespace ProjetZORK
         public Launcher(ZorkService zorkService)
         {
             this.zorkService = zorkService;
+
+            this.zorkService.ObjectTypeServices.generateObject();
+            this.zorkService.WeaponServices.generateObject();
+
         }
 
         public void Start()
@@ -157,8 +161,11 @@ namespace ProjetZORK
             List<PlayerDto> games = this.zorkService.PlayerServices.GetAll();
             foreach (PlayerDto game in Enumerable.Reverse(games))
             {
-                ItemsMenuName[1].Add($"{game.Id}. {game.Name}");
-                ItemsMenuAction[1].Add(() => StartGame(game.Id));
+                if (game.isFinish == false && game.HP > 0)
+                {
+                    ItemsMenuName[1].Add($"{game.Id}. {game.Name}");
+                    ItemsMenuAction[1].Add(() => StartGame(game.Id));
+                }
             }
             ChangePage(IndexPage, IndexMenu);
         }
@@ -177,6 +184,7 @@ namespace ProjetZORK
 
         void ExitGame()
         {
+            Console.Clear();
             Console.WriteLine("Exit Game");
             this.Exit(this, Event);
         }
