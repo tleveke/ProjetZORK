@@ -21,12 +21,12 @@ namespace ProjetZORK.theGame
         private MonsterDto monsterCurrent = new MonsterDto();
         List<Monster> ListMonster = new List<Monster>() {
             new Monster { Name = "Orc", HP = 2, AttackRate = 85 },
-            new Monster { Name = "Murloc", HP = 4, AttackRate = 65 },
-            new Monster { Name = "Sorcière", HP = 6, AttackRate = 55 },
-            new Monster { Name = "Troll", HP = 6, AttackRate = 85 },
-            new Monster { Name = "Harpie", HP = 7, AttackRate = 100 },
-            new Monster { Name = "Golem", HP = 12, AttackRate = 35 },
-            new Monster { Name = "Dragon", HP = 10, AttackRate = 85 },
+            new Monster { Name = "Murloc", HP = 5, AttackRate = 65 },
+            new Monster { Name = "Sorcière", HP = 10, AttackRate = 55 },
+            new Monster { Name = "Troll", HP = 20, AttackRate = 85 },
+            new Monster { Name = "Harpie", HP = 35, AttackRate = 100 },
+            new Monster { Name = "Golem", HP = 50, AttackRate = 35 },
+            new Monster { Name = "Dragon", HP = 100, AttackRate = 85 },
         };
 
         private ZorkService zorkService;
@@ -60,13 +60,12 @@ namespace ProjetZORK.theGame
             //Console.WriteLine($"Position : x {this.cellCurrent.PosX} | y {this.cellCurrent.PosY}");
             Console.WriteLine($"Description : {this.cellCurrent.Description}");
             Console.WriteLine("##############################################");
-            Console.WriteLine("Deplacement :");
             deplacement();
             if(!this.exit) movePlayer();
         }
         public void deplacement()
         {
-            Console.Write("Move > ");
+            Console.Write("Déplacement > ");
             var ch = Console.ReadKey().Key;
             Console.Clear();
             int x = this.cellCurrent.PosX;
@@ -182,7 +181,7 @@ namespace ProjetZORK.theGame
 
                     ObjectTypeDto objectTypeDto = this.ObjectTypeDtos[new Random().Next(0, this.ObjectTypeDtos.Count())];
                     Console.WriteLine("##############################################");
-                    Console.WriteLine("You found a treasure !");
+                    Console.WriteLine("Vous avez trouvé un trésor !");
                     Console.WriteLine($"                 {objectTypeDto.Name}                   ");
                     Console.WriteLine("##############################################");
                     this.player = await this.zorkService.PlayerServices.addObjectPlayer(objectTypeDto);
@@ -194,25 +193,29 @@ namespace ProjetZORK.theGame
                     WeaponDto weaponDto = this.WeaponDtos[new Random().Next(0, this.WeaponDtos.Count())];
                     Console.WriteLine("##############################################");
                     Console.WriteLine("You found a weapon !");
-                    Console.WriteLine($"   {weaponDto.Name} => Power : {weaponDto.AttackPower} ; " +
-                        $"AttackRate : {weaponDto.AttackPower} ; MissRate : {weaponDto.MissRate} ;            ");
-                    Console.WriteLine("Do you want to recover this weapon? (y for yes)");
+                    Console.WriteLine($"   {weaponDto.Name} => Puissance : {weaponDto.AttackPower} ; " +
+                        $"Attaque Pourcentage : {weaponDto.AttackPower} ; Pourcentage de rater une attaque : {weaponDto.MissRate} ;            ");
+                    Console.WriteLine("Voulez-vous cette arme? (o pour oui)");
                     if (this.player.Weapon != null)
                     {
-                        Console.WriteLine($"  Actual Weapon => {this.player.Weapon.Name} => Power : {this.player.Weapon.AttackPower} ; " +
-                            $"AttackRate : {this.player.Weapon.AttackPower} ; MissRate : {this.player.Weapon.MissRate} ;            ");
+                        Console.WriteLine($"  Arme actuel => {this.player.Weapon.Name} => Puissance : {this.player.Weapon.AttackPower} ; " +
+                            $"Attaque Pourcentage : {this.player.Weapon.AttackPower} ; Pourcentage de rater une attaque : {this.player.Weapon.MissRate} ;            ");
                     }
                     else
                     {
-                        Console.WriteLine("You don't have a weapon !");
+                        Console.WriteLine("Vous n'avez d'arme !");
                     }
 
-                    Console.Write("Weapon Choice > ");
+                    Console.Write("Choix de l'arme (o pour oui) > ");
                     var ch = Console.ReadLine();
 
-                    if (ch == "y" || ch == "yes")
+                    if (ch == "o" || ch == "oui")
                     {
                         this.player = await this.zorkService.PlayerServices.weaponPlayer(weaponDto);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Vous n'avez pas choisi l'arme !");
                     }
                 }
 
@@ -233,11 +236,11 @@ namespace ProjetZORK.theGame
             this.actionFight();
         }
 
-        public void actionFight()
+        public async void actionFight()
         {
             this.player = await this.zorkService.PlayerServices.editUserLifeXP(this.player);
 
-            Console.Write("Fight > ");
+            Console.Write("Combat > ");
             var ch = Console.ReadLine();
             switch (ch)
             {
@@ -252,7 +255,8 @@ namespace ProjetZORK.theGame
                     break;
                 /* Équipement */
                 case "3":
-                    listInventory(this.monsterCurrent);
+                    listInventory();
+                    damageMonster(-10);
                     break;
                 /* Fuite */
                 case "4":
@@ -275,27 +279,24 @@ namespace ProjetZORK.theGame
             }
         }
 
-        public void damagePlayer() {
+        public async void damagePlayer() {
             /* Attaque du Joueur */
             this.monsterCurrent.HP = this.monsterCurrent.HP - this.player.Attack; /* + obgectDmg */
-            Task.Run(async () => {
-                await this.zorkService.MonsterServices.EditAsync(this.monsterCurrent);
-            }).Wait();
+            await this.zorkService.MonsterServices.EditAsync(this.monsterCurrent);
             Console.WriteLine($"Vous attaquez ! {this.monsterCurrent.Name} a {this.monsterCurrent.HP} HP");
             if (this.monsterCurrent.HP <= 0)
             {
                 Console.WriteLine($"{this.monsterCurrent.Name} est mort...");
                 this.player.XP++;
-                Task.Run(async () => {
-                    await this.zorkService.PlayerServices.editUserLifeXP(this.player);
-                }).Wait();
-                Task.Run(async () => {
-                    await this.zorkService.MonsterServices.DeleteAsync(this.monsterCurrent);
-                }).Wait();
+                await this.zorkService.PlayerServices.editUserLifeXP(this.player);
+                await this.zorkService.MonsterServices.DeleteAsync(this.monsterCurrent);
                 if (this.monsterCurrent.Name == "Dragon")
                 {
                     Console.WriteLine("\n\n\n      (¯`·¯`·.¸¸.·´¯`·.¸¸.·´¯`·´¯)\n      ( \\                      / )\n       ( ) Vous avez gagner ! ( )\n        (/                    \\)\n         (.·´¯`·.¸¸.·´¯`·.¸¸.·)");
                     this.exit = true;
+
+                    this.player = await this.zorkService.PlayerServices.finishPlayer();
+
                 }
             }
         }
@@ -342,7 +343,7 @@ namespace ProjetZORK.theGame
 
 
 
-        public async void listInventory(Monster monster)
+        public async void listInventory()
         {
             this.headInfo();
 
@@ -382,12 +383,11 @@ namespace ProjetZORK.theGame
                     ObjectPlayerDto objectPlayerDto = this.player.ObjectInventory.ElementAt(int.Parse(choice) - 1);
 
                     this.player = await this.zorkService.PlayerServices.removeObjectPlayer(objectPlayerDto);
-                    damageMonster(monster);
                 }
             }
             catch
             {
-                Console.WriteLine("Error !");
+                Console.WriteLine("Vous n'avez pas choisi d'objet !");
             }
 
 
@@ -396,21 +396,21 @@ namespace ProjetZORK.theGame
         public void headInfo()
         {
             Console.WriteLine("##############################################");
-            Console.WriteLine($"                  Name : {this.player.Name}                   ");
+            Console.WriteLine($"                  Nom : {this.player.Name}                   ");
             Console.WriteLine($"                  HP :  {this.player.HP}                  ");
             Console.WriteLine($"                  XP :  {this.player.XP}                  ");
-            Console.WriteLine($"                  Attack :  {this.player.Attack}                  ");
-            Console.WriteLine($"                  Defense :  {this.player.Defense}                  ");
+            Console.WriteLine($"                  Puissance d'attaque :  {this.player.Attack}                  ");
+            Console.WriteLine($"                  Défense :  {this.player.Defense}                  ");
 
             if (this.player.Weapon != null)
             {
-                Console.WriteLine($"                  Weapon :  {this.player.Weapon.Name} => Power : {this.player.Weapon.AttackPower} " +
-                    $"; AttackRate : {this.player.Weapon.AttackPower} ; MissRate : {this.player.Weapon.MissRate}                 ");
+                Console.WriteLine($"                  Arme :  {this.player.Weapon.Name} => Puissance d'attaque : {this.player.Weapon.AttackPower} " +
+                    $"; Attaque Pourcentage : {this.player.Weapon.AttackPower} ; Chance de rater une attaque : {this.player.Weapon.MissRate}                 ");
             }
 
 
             Console.WriteLine("______________________________________________");
-            Console.WriteLine($"-------------  Objects Inventory ({this.player.ObjectInventory.Count} objects)  -----------");
+            Console.WriteLine($"-------------  Inventaires => ({this.player.ObjectInventory.Count} objets)  -----------");
         }
         public void infoPlayer()
         {
@@ -423,15 +423,15 @@ namespace ProjetZORK.theGame
 
                 if (objectTypeDto.HPRestoreValue > 0)
                 {
-                    Display += $" Heal : {objectTypeDto.HPRestoreValue} HP";
+                    Display += $" HP : {objectTypeDto.HPRestoreValue} HP";
                 }
                 if (objectTypeDto.AttackStrenghBoost > 0)
                 {
-                    Display += $" Attack Boost {objectTypeDto.AttackStrenghBoost}";
+                    Display += $" Puissance Boost {objectTypeDto.AttackStrenghBoost}";
                 }
                 if (objectTypeDto.DefenseBoost > 0)
                 {
-                    Display += $"Defense Boost : {objectTypeDto.DefenseBoost}";
+                    Display += $"Défense Boost : {objectTypeDto.DefenseBoost}";
                 }
                 Console.WriteLine(Display);
 
