@@ -13,6 +13,7 @@ namespace ProjetZORK.theGame
     {
         private List<CellDto> map = new List<CellDto>();
         private List<ObjectTypeDto> ObjectTypeDtos = new List<ObjectTypeDto>();
+        private List<WeaponDto> WeaponDtos = new List<WeaponDto>();
 
 
         private PlayerDto player = new PlayerDto();
@@ -36,7 +37,9 @@ namespace ProjetZORK.theGame
         {
             this.zorkService = zorkService;
             this.gameId = gameId;
+            Console.Clear();
             getObjectTypes();
+            getWeapons();
             getPlayer();
             getMap();
 
@@ -63,7 +66,7 @@ namespace ProjetZORK.theGame
         }
         public void deplacement()
         {
-            Console.Write(">");
+            Console.Write("Move > ");
             var ch = Console.ReadKey().Key;
             Console.Clear();
             int x = this.cellCurrent.PosX;
@@ -168,14 +171,52 @@ namespace ProjetZORK.theGame
         {
             if (this.player.Cell.objectGet == true)
             {
-                ObjectTypeDto objectTypeDto = this.ObjectTypeDtos[new Random().Next(0, this.ObjectTypeDtos.Count())];
-                Console.WriteLine("##############################################");
-                Console.WriteLine("You found a treasure !");
-                Console.WriteLine($"                 {objectTypeDto.Name}                   ");
-                Console.WriteLine("##############################################");
+
+                Random rnd = new Random();
+
+                int random = rnd.Next(0, 100);
+
+                if (60 > random)
+                {
+                    //Generation d'un objet consommable !
+
+                    ObjectTypeDto objectTypeDto = this.ObjectTypeDtos[new Random().Next(0, this.ObjectTypeDtos.Count())];
+                    Console.WriteLine("##############################################");
+                    Console.WriteLine("You found a treasure !");
+                    Console.WriteLine($"                 {objectTypeDto.Name}                   ");
+                    Console.WriteLine("##############################################");
+                    this.player = await this.zorkService.PlayerServices.addObjectPlayer(objectTypeDto);
+                }
+                else
+                {
+                    //Generation d'une arme !
+
+                    WeaponDto weaponDto = this.WeaponDtos[new Random().Next(0, this.WeaponDtos.Count())];
+                    Console.WriteLine("##############################################");
+                    Console.WriteLine("You found a weapon !");
+                    Console.WriteLine($"   {weaponDto.Name} => Power : {weaponDto.AttackPower} ; " +
+                        $"AttackRate : {weaponDto.AttackPower} ; MissRate : {weaponDto.MissRate} ;            ");
+                    Console.WriteLine("Do you want to recover this weapon? (y for yes)");
+                    if (this.player.Weapon != null)
+                    {
+                        Console.WriteLine($"  Actual Weapon => {this.player.Weapon.Name} => Power : {this.player.Weapon.AttackPower} ; " +
+                            $"AttackRate : {this.player.Weapon.AttackPower} ; MissRate : {this.player.Weapon.MissRate} ;            ");
+                    }
+                    else
+                    {
+                        Console.WriteLine("You don't have a weapon !");
+                    }
+
+                    Console.Write("Weapon Choice > ");
+                    var ch = Console.ReadLine();
+
+                    if (ch == "y" || ch == "yes")
+                    {
+                        this.player = await this.zorkService.PlayerServices.weaponPlayer(weaponDto);
+                    }
+                }
 
 
-                this.player = await this.zorkService.PlayerServices.addObjectPlayer(objectTypeDto);
             }
         }
 
@@ -196,7 +237,7 @@ namespace ProjetZORK.theGame
         {
             this.player = await this.zorkService.PlayerServices.editUserLifeXP(this.player);
 
-            Console.Write(">");
+            Console.Write("Fight > ");
             var ch = Console.ReadLine();
             switch (ch)
             {
@@ -294,6 +335,10 @@ namespace ProjetZORK.theGame
         {
             this.ObjectTypeDtos = this.zorkService.PlayerServices.GetObjectTypeDtos();
         }
+        public void getWeapons()
+        {
+            this.WeaponDtos = this.zorkService.PlayerServices.GetWeaponsDtos();
+        }
 
 
 
@@ -356,6 +401,14 @@ namespace ProjetZORK.theGame
             Console.WriteLine($"                  XP :  {this.player.XP}                  ");
             Console.WriteLine($"                  Attack :  {this.player.Attack}                  ");
             Console.WriteLine($"                  Defense :  {this.player.Defense}                  ");
+
+            if (this.player.Weapon != null)
+            {
+                Console.WriteLine($"                  Weapon :  {this.player.Weapon.Name} => Power : {this.player.Weapon.AttackPower} " +
+                    $"; AttackRate : {this.player.Weapon.AttackPower} ; MissRate : {this.player.Weapon.MissRate}                 ");
+            }
+
+
             Console.WriteLine("______________________________________________");
             Console.WriteLine($"-------------  Objects Inventory ({this.player.ObjectInventory.Count} objects)  -----------");
         }

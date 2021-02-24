@@ -46,6 +46,7 @@ namespace ProjetZORK
             this.zorkService = zorkService;
 
             this.zorkService.ObjectTypeServices.generateObject();
+            this.zorkService.WeaponServices.generateObject();
 
         }
 
