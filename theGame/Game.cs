@@ -20,7 +20,7 @@ namespace ProjetZORK.theGame
         private CellDto cellCurrent = new CellDto();
         private MonsterDto monsterCurrent = new MonsterDto();
         List<Monster> ListMonster = new List<Monster>() {
-            new Monster { Name = "Orc", HP = 2, AttackRate = 85, Attack = 100 },
+            new Monster { Name = "Orc", HP = 2, AttackRate = 85, Attack = 1 },
             new Monster { Name = "Murloc", HP = 5, AttackRate = 65, Attack = 2 },
             new Monster { Name = "Sorcière", HP = 10, AttackRate = 55, Attack = 2 },
             new Monster { Name = "Troll", HP = 20, AttackRate = 85, Attack = 3 },
