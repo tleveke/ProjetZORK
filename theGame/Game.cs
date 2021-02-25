@@ -20,18 +20,19 @@ namespace ProjetZORK.theGame
         private CellDto cellCurrent = new CellDto();
         private MonsterDto monsterCurrent = new MonsterDto();
         List<Monster> ListMonster = new List<Monster>() {
-            new Monster { Name = "Orc", HP = 2, AttackRate = 85 },
-            new Monster { Name = "Murloc", HP = 5, AttackRate = 65 },
-            new Monster { Name = "Sorcière", HP = 10, AttackRate = 55 },
-            new Monster { Name = "Troll", HP = 20, AttackRate = 85 },
-            new Monster { Name = "Harpie", HP = 35, AttackRate = 100 },
-            new Monster { Name = "Golem", HP = 50, AttackRate = 35 },
-            new Monster { Name = "Dragon", HP = 100, AttackRate = 85 },
+            new Monster { Name = "Orc", HP = 2, AttackRate = 85, Attack = 100 },
+            new Monster { Name = "Murloc", HP = 5, AttackRate = 65, Attack = 2 },
+            new Monster { Name = "Sorcière", HP = 10, AttackRate = 55, Attack = 2 },
+            new Monster { Name = "Troll", HP = 20, AttackRate = 85, Attack = 3 },
+            new Monster { Name = "Harpie", HP = 35, AttackRate = 100, Attack = 4 },
+            new Monster { Name = "Golem", HP = 50, AttackRate = 35, Attack = 7 },
+            new Monster { Name = "Dragon", HP = 100, AttackRate = 85, Attack = 6 },
         };
 
         private ZorkService zorkService;
         private int gameId;
         private bool exit = false;
+        private bool infoKey = true;
 
         public Game(ZorkService zorkService, int gameId)
         {
@@ -55,16 +56,23 @@ namespace ProjetZORK.theGame
         public void gameCell()
         {
             this.cellCurrent = this.player.Cell;
-            this.genMiniMap();
-            Console.WriteLine("##############################################");
-            //Console.WriteLine($"Position : x {this.cellCurrent.PosX} | y {this.cellCurrent.PosY}");
-            Console.WriteLine($"Description : {this.cellCurrent.Description}");
-            Console.WriteLine("##############################################");
             deplacement();
             if(!this.exit) movePlayer();
         }
         public void deplacement()
         {
+            this.genMiniMap();
+            if (infoKey)
+            {
+                Console.WriteLine("##############################################");
+                Console.WriteLine("Utilisez les touches fléchées pour vous déplacez");
+                Console.WriteLine("Pour avoir plus d'information sur votre personnage appuyer sur 'Espace'");
+                Console.WriteLine("Appuyer sur 'I' pour desactiver ce message");
+            }
+            Console.WriteLine("##############################################");
+            //Console.WriteLine($"Position : x {this.cellCurrent.PosX} | y {this.cellCurrent.PosY}");
+            Console.WriteLine($"Description : {this.cellCurrent.Description}");
+            Console.WriteLine("##############################################");
             Console.Write("Déplacement > ");
             var ch = Console.ReadKey().Key;
             Console.Clear();
@@ -90,6 +98,11 @@ namespace ProjetZORK.theGame
                 case ConsoleKey.Spacebar:
                     // INFO PLAYER
                     this.infoPlayer();
+                    this.deplacement();
+                    break;
+                case ConsoleKey.I:
+                    // INFO Key disable
+                    this.infoKey = !this.infoKey;
                     this.deplacement();
                     break;
                 default:
@@ -142,7 +155,13 @@ namespace ProjetZORK.theGame
                     rankMonster++;
                 }
                 Monster m = ListMonster[rankMonster];
-                Monster newMonster = new Monster { Name = m.Name, HP = m.HP, AttackRate = m.AttackRate, Group = player.Id };
+                Monster newMonster = new Monster { 
+                    Name = m.Name, 
+                    HP = m.HP,
+                    AttackRate = m.AttackRate, 
+                    Attack = m.Attack, 
+                    Group = player.Id 
+                };
                 Task.Run(async () => {
                     this.monsterCurrent = await this.zorkService.MonsterServices.AddAsync(newMonster);
                 }).Wait();
@@ -301,20 +320,19 @@ namespace ProjetZORK.theGame
             }
         }
         
-        public void damageMonster(int defence = 0) {
+        public async void damageMonster(int defence = 0) {
             /* Attaque du Monstre */
             if (this.monsterCurrent.HP <= 0) return;
             Random rnd = new Random();
             if ((this.monsterCurrent.AttackRate - defence + this.player.Defense) > rnd.Next(0, 100))
             {
-                this.player.HP = this.player.HP - 1; /* +++ */
-                Task.Run(async () => {
-                    await this.zorkService.PlayerServices.editUserLifeXP(this.player);
-                }).Wait();
+                this.player.HP = this.player.HP - this.monsterCurrent.Attack; 
+                await this.zorkService.PlayerServices.editUserLifeXP(this.player);
                 Console.WriteLine($"{this.monsterCurrent.Name} attaque ! Il vous reste {this.player.HP} HP");
                 if (this.player.HP <= 0)
                 {
                     Console.WriteLine(" - Game Over - ");
+                    this.exit = true;
                 }
             }
             else
